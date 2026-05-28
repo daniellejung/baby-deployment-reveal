@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baby Deployment Reveal</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #020403;
+      color: #86efac;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      overflow: hidden;
+    }
+    .app {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(34,197,94,.18), transparent 28%),
+        radial-gradient(circle at 85% 80%, rgba(34,197,94,.12), transparent 35%),
+        #020403;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 28px;
+    }
+    .app.final {
+      background:
+        radial-gradient(circle at 25% 10%, rgba(244,114,182,.24), transparent 30%),
+        radial-gradient(circle at 80% 80%, rgba(217,70,239,.18), transparent 35%),
+        #050205;
+    }
+    .terminal {
+      width: min(1100px, 100%);
+      border: 1px solid rgba(74,222,128,.4);
+      border-radius: 28px;
+      background: rgba(0,0,0,.78);
+      box-shadow: 0 24px 80px rgba(34,197,94,.12);
+      padding: 22px;
+      z-index: 2;
+      backdrop-filter: blur(8px);
+    }
+    .terminal.final {
+      border-color: rgba(244,114,182,.75);
+      box-shadow: 0 24px 110px rgba(244,114,182,.28);
+    }
+    .topbar {
+      border-bottom: 1px solid rgba(74,222,128,.18);
+      padding-bottom: 18px;
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+    .dots { display: flex; gap: 8px; }
+    .dots span { width: 13px; height: 13px; border-radius: 999px; display: block; }
+    .red { background: #f87171; }
+    .yellow { background: #facc15; }
+    .green { background: #4ade80; }
+    .filename { color: rgba(187,247,208,.55); font-size: 13px; }
+    .slide {
+      min-height: 540px;
+      display: grid;
+      grid-template-columns: 1.12fr .88fr;
+      gap: 40px;
+      align-items: center;
+      animation: slideIn .45s ease both;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(14px) scale(.985); filter: blur(6px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    .eyebrow {
+      margin: 0 0 18px;
+      text-transform: uppercase;
+      letter-spacing: .35em;
+      font-size: 14px;
+      color: rgba(74,222,128,.72);
+    }
+    h1 {
+      margin: 0 0 34px;
+      color: #bbf7d0;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: 1.05;
+      letter-spacing: -.04em;
+    }
+    .pink { color: #f9a8d4 !important; }
+    .lines {
+      min-height: 190px;
+      color: rgba(240,253,244,.92);
+      font-size: clamp(20px, 2.4vw, 30px);
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    .lines div { animation: typeLine .25s ease both; }
+    @keyframes typeLine {
+      from { opacity: 0; transform: translateX(-12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .cursor { color: #86efac; animation: blink .8s steps(2, start) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .revealLine {
+      font-size: clamp(64px, 12vw, 140px);
+      font-weight: 900;
+      line-height: .95;
+      color: #f9a8d4;
+      text-shadow: 0 0 26px rgba(244,114,182,.55);
+      animation: pop .65s cubic-bezier(.17,.89,.32,1.28) both !important;
+    }
+    @keyframes pop {
+      from { transform: scale(.82); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .progressBlock { margin-top: 32px; display: none; }
+    .progressLabel {
+      display: flex;
+      justify-content: space-between;
+      color: rgba(187,247,208,.68);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .progressTrack {
+      height: 20px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(20,83,45,.32);
+      border: 1px solid rgba(74,222,128,.35);
+    }
+    .progressFill {
+      height: 100%;
+      background: #4ade80;
+      border-radius: 999px;
+      animation: progress 1.2s ease-out both;
+    }
+    @keyframes progress { from { width: 0; } }
+    .iconWrap { display: flex; align-items: center; justify-content: center; }
+    .bigIcon {
+      width: min(260px, 34vw);
+      height: min(260px, 34vw);
+      min-width: 190px;
+      min-height: 190px;
+      border: 1px solid rgba(74,222,128,.4);
+      background: rgba(255,255,255,.045);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #bbf7d0;
+      font-size: clamp(56px, 8vw, 110px);
+      font-weight: 900;
+      animation: float 2.8s ease-in-out infinite;
+    }
+    .bigIcon.final {
+      color: #f9a8d4;
+      border-color: rgba(244,114,182,.7);
+      animation: finalFloat 1.35s ease-in-out infinite;
+      text-shadow: 0 0 30px rgba(244,114,182,.65);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes finalFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      30% { transform: translateY(-12px) rotate(-3deg); }
+      70% { transform: translateY(-4px) rotate(3deg); }
+    }
+    .deployButton {
+      margin-top: 32px;
+      padding: 22px 46px;
+      border-radius: 18px;
+      border: 1px solid #bbf7d0;
+      background: #4ade80;
+      color: #001607;
+      font: inherit;
+      font-size: 28px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 0 32px rgba(74,222,128,.28);
+      animation: pulse 1.2s ease-in-out infinite;
+      display: none;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .controls {
+      z-index: 3;
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .controls button {
+      border: 1px solid rgba(74,222,128,.45);
+      background: rgba(0,0,0,.55);
+      color: #bbf7d0;
+      font: inherit;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .controls button:first-child {
+      background: #4ade80;
+      color: #001607;
+      font-weight: 800;
+    }
+    .tip {
+      z-index: 3;
+      color: rgba(187,247,208,.45);
+      font-size: 12px;
+      margin-top: 12px;
+      text-align: center;
+    }
+    .matrix {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      opacity: .18;
+      z-index: 1;
+    }
+    .matrix span {
+      position: absolute;
+      top: -8%;
+      color: #4ade80;
+      font-size: 14px;
+      animation: rain linear infinite;
+    }
+    @keyframes rain {
+      from { transform: translateY(0); }
+      to { transform: translateY(115vh); }
+    }
+    .confetti {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 5;
+    }
+    .confetti span {
+      position: absolute;
+      top: -5%;
+      width: 10px;
+      height: 16px;
+      border-radius: 3px;
+      animation: fall ease-out both;
+    }
+    @keyframes fall {
+      0% { transform: translate(0, -40px) rotate(0deg); opacity: 1; }
+      100% { transform: translate(var(--drift), 112vh) rotate(var(--rot)); opacity: .85; }
+    }
+    @media (max-width: 780px) {
+      .app { padding: 16px; }
+      .slide { grid-template-columns: 1fr; min-height: auto; gap: 24px; }
+      .iconWrap { order: -1; }
+      .bigIcon { width: 150px; height: 150px; min-width: 150px; min-height: 150px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" class="app">
+    <div id="matrix" class="matrix"></div>
+    <div id="confetti" class="confetti"></div>
+
+    <section id="terminal" class="terminal">
+      <header class="topbar">
+        <div class="dots">
+          <span class="red"></span>
+          <span class="yellow"></span>
+          <span class="green"></span>
+        </div>
+        <div id="filename" class="filename"></div>
+      </header>
+
+      <div id="slide" class="slide">
+        <div class="copy">
+          <p id="eyebrow" class="eyebrow"></p>
+          <h1 id="title"></h1>
+          <div id="lines" class="lines"></div>
+
+          <div id="progressBlock" class="progressBlock">
+            <div class="progressLabel">
+              <span>Pipeline Status</span>
+              <span id="progressNum"></span>
+            </div>
+            <div class="progressTrack">
+              <div id="progressFill" class="progressFill"></div>
+            </div>
+          </div>
+
+          <button id="deployButton" class="deployButton">DEPLOY</button>
+        </div>
+
+        <div class="iconWrap">
+          <div id="bigIcon" class="bigIcon"></div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="controls">
+      <button id="nextBtn">Next / Enter</button>
+      <button id="resetBtn">Reset</button>
+    </nav>
+
+    <p class="tip">Tip: connect to TV, go full screen, then press Enter for each step.</p>
+  </main>
+
+  <script>
+    const gender = "GIRL"; // Change to "BOY" if needed.
+    const releaseName = gender === "GIRL" ? "baby_v2.0_female" : "baby_v2.0_male";
+
+    const slides = [
+      { eyebrow: "BabyOS Terminal", title: "Booting BabyOS...", lines: ["Initializing tiny-human runtime", "Region: Silicon Valley, CA", "Version: v2.0.26"], icon: "⌘" },
+      { eyebrow: "Dependency Install", title: "Fetching parental datasets...", lines: ["[✓] Mom DNA loaded", "[✓] Dad DNA loaded", "[✓] Love unlimited", "[✓] Prayers always"], icon: "♡" },
+      { eyebrow: "CI Pipeline", title: "Running build checks...", lines: ["Code Check    → PASS", "Unit Tests    → PASS", "Security Scan → PASS", "Build Package → PASS"], progress: 72, icon: "✓" },
+      { eyebrow: "Configuration", title: "Validating deployment config...", lines: ["[✓] Environment variables", "[✓] Dependencies", "[✓] Permissions", "[✓] Family support", "STATUS: READY"], icon: "{}" },
+      { eyebrow: "Pull Request", title: "Merge request approved.", lines: ["Branch: parents/main", "Commit: baby_v2.0", "Reviewer: God", "Author: Mom & Dad"], icon: "git" },
+      { eyebrow: "Production Release", title: "Deploying to production...", lines: ["Release version: baby_v2.0", "Rollback: disabled", "Expected uptime: lifelong"], progress: 88, icon: "🚀" },
+      { eyebrow: "Runtime Logs", title: "Deployment in progress...", lines: ["10:00:01 initializing happiness.exe... OK", "10:00:02 installing tiny human... OK", "10:00:03 enabling giggles... OK", "10:00:04 finalizing love.conf... OK"], progress: 100, icon: "▣" },
+      { eyebrow: "QA Sign-off", title: "Running final tests...", lines: ["Heartbeat................ PASS", "Kicks.................... PASS", "Cute factor.............. PASS", "Family happiness......... PASS"], icon: "QA" },
+      { eyebrow: "Health Check", title: "Production health check", lines: ["Uptime................... ∞", "SLA...................... 100%", "Support.................. 24/7", "Love..................... ∞"], icon: "∞" },
+      { eyebrow: "Manual Approval Required", title: "Press ENTER to deploy.", lines: ["All checks passed.", "Deployment window is open.", "Waiting for final approval..."], cta: true, icon: "▶" },
+      { eyebrow: "Release Complete", title: "DEPLOYMENT SUCCESSFUL!", lines: [`It's a ${gender}!`, `${releaseName} released to production`, "Welcome to the team, baby_v2.0"], final: true, icon: "🎁" }
+    ];
+
+    let index = 0;
+    let typingTimer = null;
+
+    const app = document.getElementById("app");
+    const terminal = document.getElementById("terminal");
+    const filename = document.getElementById("filename");
+    const slideEl = document.getElementById("slide");
+    const eyebrow = document.getElementById("eyebrow");
+    const title = document.getElementById("title");
+    const lines = document.getElementById("lines");
+    const progressBlock = document.getElementById("progressBlock");
+    const progressNum = document.getElementById("progressNum");
+    const progressFill = document.getElementById("progressFill");
+    const deployButton = document.getElementById("deployButton");
+    const bigIcon = document.getElementById("bigIcon");
+    const confetti = document.getElementById("confetti");
+
+    function render() {
+      const s = slides[index];
+      app.classList.toggle("final", !!s.final);
+      terminal.classList.toggle("final", !!s.final);
+      bigIcon.classList.toggle("final", !!s.final);
+      eyebrow.classList.toggle("pink", !!s.final);
+      title.classList.toggle("pink", !!s.final);
+
+      filename.textContent = `baby-deploy.sh · step ${index + 1}/${slides.length}`;
+      eyebrow.textContent = s.eyebrow;
+      title.textContent = `> ${s.title}`;
+      bigIcon.textContent = s.icon;
+
+      slideEl.style.animation = "none";
+      void slideEl.offsetWidth;
+      slideEl.style.animation = "slideIn .45s ease both";
+
+      lines.innerHTML = "";
+      if (typingTimer) clearInterval(typingTimer);
+      let i = 0;
+      typingTimer = setInterval(() => {
+        if (i >= s.lines.length) {
+          clearInterval(typingTimer);
+          const cursor = document.createElement("span");
+          cursor.className = "cursor";
+          cursor.textContent = "▌";
+          lines.appendChild(cursor);
+          return;
+        }
+        const div = document.createElement("div");
+        div.textContent = s.lines[i];
+        if (s.final && i === 0) div.className = "revealLine";
+        lines.appendChild(div);
+        i++;
+      }, s.final ? 380 : 480);
+
+      if (s.progress) {
+        progressBlock.style.display = "block";
+        progressNum.textContent = `${s.progress}%`;
+        progressFill.style.width = `${s.progress}%`;
+      } else {
+        progressBlock.style.display = "none";
+      }
+
+      deployButton.style.display = s.cta ? "inline-block" : "none";
+
+      if (s.final) makeConfetti();
+      else confetti.innerHTML = "";
+    }
+
+    function next() {
+      index = Math.min(index + 1, slides.length - 1);
+      render();
+    }
+
+    function reset() {
+      index = 0;
+      render();
+    }
+
+    document.getElementById("nextBtn").addEventListener("click", next);
+    document.getElementById("resetBtn").addEventListener("click", reset);
+    deployButton.addEventListener("click", next);
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") next();
+      if (e.key === "r" || e.key === "R") reset();
+    });
+
+    function makeMatrix() {
+      const matrix = document.getElementById("matrix");
+      const words = ["01", "git", "OK", "v2", "npm", "run", "CI", "♥", "deploy"];
+      for (let i = 0; i < 48; i++) {
+        const span = document.createElement("span");
+        span.textContent = words[i % words.length];
+        span.style.left = `${(i * 37) % 100}%`;
+        span.style.animationDelay = `${(i % 11) * .4}s`;
+        span.style.animationDuration = `${6 + (i % 7)}s`;
+        matrix.appendChild(span);
+      }
+    }
+
+    function makeConfetti() {
+      confetti.innerHTML = "";
+      const colors = gender === "GIRL"
+        ? ["#f9a8d4", "#f0abfc", "#fecdd3", "#ffffff"]
+        : ["#7dd3fc", "#93c5fd", "#a5f3fc", "#ffffff"];
+
+      for (let i = 0; i < 120; i++) {
+        const span = document.createElement("span");
+        span.style.left = `${Math.random() * 100}%`;
+        span.style.background = colors[i % colors.length];
+        span.style.animationDelay = `${Math.random() * .45}s`;
+        span.style.animationDuration = `${2.2 + Math.random() * 1.4}s`;
+        span.style.setProperty("--drift", `${Math.random() * 320 - 160}px`);
+        span.style.setProperty("--rot", `${Math.random() * 720 - 360}deg`);
+        confetti.appendChild(span);
+      }
+    }
+
+    makeMatrix();
+    render();
+  </script>
+</body>
+</html>
